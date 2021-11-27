@@ -2,42 +2,38 @@ import {
   IListener,
   IListenerFactory,
   IListenersManager,
-  ListenersWithExtraArgs,
-  TRegisterListener,
+  ListenerWithExtraArgs,
+  Register,
 } from "./types";
 
 export default class ListenersManager<
-  ManagerConstructorArgs = {},
-  ListenersManagerState = {}
-> implements IListenersManager<ManagerConstructorArgs, ListenersManagerState>
+  ManagerConstructor = {},
+  ManagerState = {}
+> implements IListenersManager<ManagerConstructor, ManagerState>
 {
   // Oldest mutations will be at the start and then followed by newer mutations
-  private mListenersManagerUpdateRequestsQueue: Partial<ListenersManagerState>[] =
-    [];
-  private mListenersManagerState: Partial<ListenersManagerState> | undefined;
+  private mListenersManagerUpdateRequestsQueue: Partial<ManagerState>[] = [];
 
-  private mConstructorArgs: ManagerConstructorArgs | undefined;
+  private mManagerState: Partial<ManagerState> | undefined;
+  private mConstructorArgs: ManagerConstructor | undefined;
 
   private mRegisteredListeners: {
     key: string;
-    ListenerFactory: IListenerFactory<
-      ManagerConstructorArgs,
-      ListenersManagerState
-    >;
+    ListenerFactory: IListenerFactory<ManagerConstructor, ManagerState>;
   }[] = [];
 
   private mListeners: {
-    [key: string]: IListener<ListenersManagerState> | undefined;
+    [key: string]: IListener<ManagerState> | undefined;
   } = {};
 
-  constructor(args: ManagerConstructorArgs) {
+  constructor(args: ManagerConstructor) {
     this.mConstructorArgs = args;
   }
 
   register = (
     listener:
-      | TRegisterListener<ManagerConstructorArgs, ListenersManagerState>
-      | TRegisterListener<ManagerConstructorArgs, ListenersManagerState>[]
+      | Register<ManagerConstructor, ManagerState>
+      | Register<ManagerConstructor, ManagerState>[]
   ): void => {
     if (Array.isArray(listener)) {
       listener.forEach((p) => {
@@ -70,7 +66,11 @@ export default class ListenersManager<
     console.log("Registered listeners:", this.mRegisteredListeners);
   };
 
-  startAll(args: ListenersWithExtraArgs[]): void {
+  logCurrentListeners = (): void => {
+    console.log("Current running listeners:", this.mListeners);
+  };
+
+  startAll(args: ListenerWithExtraArgs[]): void {
     const { mConstructorArgs, mListeners } = this;
 
     if (mConstructorArgs) {
@@ -82,8 +82,7 @@ export default class ListenersManager<
         }
 
         // Start listener
-        let newListener: IListener<ListenersManagerState> | undefined =
-          undefined;
+        let newListener: IListener<ManagerState> | undefined = undefined;
 
         if (args.length === 0) {
           newListener = registered.ListenerFactory.construct({
@@ -102,7 +101,7 @@ export default class ListenersManager<
             newListener = registered.ListenerFactory.construct({
               ...mConstructorArgs,
               updateState: this.update,
-              extraArgs: args[index].extraArgs,
+              ...args[index].extraArgs,
             });
           }
         }
@@ -124,7 +123,7 @@ export default class ListenersManager<
     });
   }
 
-  start(args: ListenersWithExtraArgs[]): void {
+  start(args: ListenerWithExtraArgs[]): void {
     const { mConstructorArgs, mListeners } = this;
 
     args.forEach((input) => {
@@ -136,8 +135,7 @@ export default class ListenersManager<
         }
 
         // Start listener
-        let newListener: IListener<ListenersManagerState> | undefined =
-          undefined;
+        let newListener: IListener<ManagerState> | undefined = undefined;
         const registered = this.mRegisteredListeners.find(
           (val) => val.key === input.key
         );
@@ -153,7 +151,7 @@ export default class ListenersManager<
           newListener = registered.ListenerFactory.construct({
             ...mConstructorArgs,
             updateState: this.update,
-            extraArgs: input.extraArgs,
+            ...input.extraArgs,
           });
         }
 
@@ -174,13 +172,13 @@ export default class ListenersManager<
     });
   }
 
-  update = (newState: Partial<ListenersManagerState>): void => {
-    const newListenersManagerState = {
-      ...this.mListenersManagerState,
+  update = (newState: Partial<ManagerState>): void => {
+    const newManagerState = {
+      ...this.mManagerState,
       ...newState,
     };
 
-    this.mListenersManagerUpdateRequestsQueue.push(newListenersManagerState);
+    this.mListenersManagerUpdateRequestsQueue.push(newManagerState);
 
     if (this.mListenersManagerUpdateRequestsQueue.length === 1) {
       this.proceedUpdateRequests();
@@ -197,11 +195,11 @@ export default class ListenersManager<
         Object.keys(mListeners).forEach((listenerName) => {
           const listener = mListeners[listenerName];
           if (listener) {
-            listener.onUpdate(this.mListenersManagerState ?? {}, updateRequest);
+            listener.onUpdate(this.mManagerState ?? {}, updateRequest);
           }
         });
 
-        this.mListenersManagerState = { ...updateRequest };
+        this.mManagerState = { ...updateRequest };
 
         // Remove the oldest update request which have just been proceeded
         this.mListenersManagerUpdateRequestsQueue.shift();

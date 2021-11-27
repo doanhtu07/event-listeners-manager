@@ -6,47 +6,52 @@ import Quill, { TextChangeHandler } from "quill";
 import {
   InheritFromManager,
   IListener,
-  ListenerConstructorArgs,
+  ListenerConstructor,
   IListenerFactory,
 } from "../copy_of_manager/types";
 
 // Example types
 
-export type Example_ManagerConstructorArgs = {
+export type ManagerConstructor_Example = {
   editor: Quill;
 };
 
-export type Example_ListenersManagerState = {
+export type ManagerState_Example = {
   TestPlugin: {
     haveFinished: boolean;
   };
 };
 
-export type Example_TestPluginUpdateFields = {
+export type TestPlugin_ExtraArgs_Example = {
+  isTestMode: boolean;
+};
+
+export type TestPlugin_UpdateInput_Example = {
   haveFinished: boolean;
 };
 
 // Example listener class
 
-class TestPlugin implements IListener<Example_ListenersManagerState> {
+class TestPlugin implements IListener<ManagerState_Example> {
   private mEditor: Quill | undefined;
   private mInheritFromManager:
-    | InheritFromManager<Example_ListenersManagerState>
+    | InheritFromManager<ManagerState_Example>
     | undefined;
 
   constructor(
-    args: Example_ManagerConstructorArgs &
-      ListenerConstructorArgs<Example_ListenersManagerState>
+    args: ManagerConstructor_Example &
+      ListenerConstructor<ManagerState_Example, TestPlugin_ExtraArgs_Example>
   ) {
-    this.mEditor = args.editor;
+    const { editor, updateState, ...extraArgs } = args;
+
+    this.mEditor = editor;
     this.mInheritFromManager = {
-      updateState: args.updateState,
+      updateState,
     };
+    console.log("Extra args:", extraArgs);
   }
 
   start = (): void => {
-    console.log(this.mEditor);
-
     document.addEventListener("click", this.logDocument);
     this.mEditor?.on("text-change", this.logEditor);
   };
@@ -56,7 +61,7 @@ class TestPlugin implements IListener<Example_ListenersManagerState> {
     this.mEditor?.off("text-change", this.logEditor);
   };
 
-  update = (fields: Partial<Example_TestPluginUpdateFields>): void => {
+  update = (fields: Partial<TestPlugin_UpdateInput_Example>): void => {
     if (!this.mInheritFromManager) return;
 
     const { updateState } = this.mInheritFromManager;
@@ -69,8 +74,8 @@ class TestPlugin implements IListener<Example_ListenersManagerState> {
   };
 
   onUpdate = (
-    oldState: Partial<Example_ListenersManagerState>,
-    newState: Partial<Example_ListenersManagerState>
+    oldState: Partial<ManagerState_Example>,
+    newState: Partial<ManagerState_Example>
   ): void => {
     console.log("-----");
     console.log("Manager update state:");
@@ -97,16 +102,12 @@ class TestPlugin implements IListener<Example_ListenersManagerState> {
 // Example factory
 
 class TestPluginFactory
-  implements
-    IListenerFactory<
-      Example_ManagerConstructorArgs,
-      Example_ListenersManagerState
-    >
+  implements IListenerFactory<ManagerConstructor_Example, ManagerState_Example>
 {
   construct = (
-    args: Example_ManagerConstructorArgs &
-      ListenerConstructorArgs<Example_ListenersManagerState>
-  ): IListener<Example_ListenersManagerState> => {
+    args: ManagerConstructor_Example &
+      ListenerConstructor<ManagerState_Example, TestPlugin_ExtraArgs_Example>
+  ): IListener<ManagerState_Example> => {
     return new TestPlugin(args);
   };
 }

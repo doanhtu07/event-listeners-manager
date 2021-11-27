@@ -4,8 +4,8 @@ import "./App.css";
 import Quill from "quill";
 import ListenersManager from "./copy_of_manager";
 import {
-  Example_ListenersManagerState,
-  Example_ManagerConstructorArgs,
+  ManagerState_Example,
+  ManagerConstructor_Example,
   TestPluginFactory_Singleton,
 } from "./example/TestPlugin";
 import { IListenersManager } from "./copy_of_manager/types";
@@ -13,10 +13,7 @@ import { IListenersManager } from "./copy_of_manager/types";
 class App extends React.Component {
   mQuill: Quill | undefined;
   mManager:
-    | IListenersManager<
-        Example_ManagerConstructorArgs,
-        Example_ListenersManagerState
-      >
+    | IListenersManager<ManagerConstructor_Example, ManagerState_Example>
     | undefined;
 
   componentDidMount() {
@@ -32,7 +29,10 @@ class App extends React.Component {
       modules: { toolbar: false },
     });
 
-    this.mManager = new ListenersManager<Example_ManagerConstructorArgs>({
+    this.mManager = new ListenersManager<
+      ManagerConstructor_Example,
+      ManagerState_Example
+    >({
       editor: this.mQuill,
     });
 
@@ -43,7 +43,14 @@ class App extends React.Component {
 
     this.mManager.logRegisteredListeners();
 
-    this.mManager.startAll([]);
+    this.mManager.startAll([
+      {
+        key: "TestPlugin",
+        extraArgs: {
+          isTestMode: true,
+        },
+      },
+    ]);
   }
 
   componentWillUnmount() {}

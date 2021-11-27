@@ -1,67 +1,60 @@
 // ----- ----- ----- ----- -----
 
-export type InheritFromManager<ListenersManagerState> = {
-  updateState: (newState: Partial<ListenersManagerState>) => void;
+export type InheritFromManager<ManagerState> = {
+  updateState: (newState: Partial<ManagerState>) => void;
 };
 
-export type ListenerConstructorArgs<ListenersManagerState> =
-  InheritFromManager<ListenersManagerState> & Partial<ExtraArgs>;
+export type ListenerConstructor<
+  ManagerState,
+  ExtraArgs = {}
+> = InheritFromManager<ManagerState> & ExtraArgs;
 
-export type ExtraArgs = {
-  extraArgs: Record<string, unknown>;
-};
-
-export type ListenersWithExtraArgs = Partial<ExtraArgs> & {
+export type ListenerWithExtraArgs = {
   key: string;
+  extraArgs: Record<string, unknown>;
 };
 
 // ----- ----- ----- ----- -----
 
-export interface IListenersManager<
-  ManagerConstructorArgs,
-  ListenersManagerState
-> {
+export type Register<ManagerConstructor, ManagerState> = {
+  key: string;
+  ListenerFactory: IListenerFactory<ManagerConstructor, ManagerState>;
+};
+export interface IListenersManager<ManagerConstructor, ManagerState> {
   register(
     listener:
-      | TRegisterListener<ManagerConstructorArgs, ListenersManagerState>
-      | TRegisterListener<ManagerConstructorArgs, ListenersManagerState>[]
+      | Register<ManagerConstructor, ManagerState>
+      | Register<ManagerConstructor, ManagerState>[]
   ): void;
 
   logRegisteredListeners(): void;
+  logCurrentListeners(): void;
 
-  startAll(args: ListenersWithExtraArgs[]): void;
+  startAll(args: ListenerWithExtraArgs[]): void;
   endAll(): void;
-  start(args: ListenersWithExtraArgs[]): void;
+  start(args: ListenerWithExtraArgs[]): void;
   end(listenerNames: string[]): void;
-  update(newState: Partial<ListenersManagerState>): void;
+  update(newState: Partial<ManagerState>): void;
 }
 
 // ----- ----- ----- ----- -----
 
-export type TRegisterListener<ManagerConstructorArgs, ListenersManagerState> = {
-  key: string;
-  ListenerFactory: IListenerFactory<
-    ManagerConstructorArgs,
-    ListenersManagerState
-  >;
-};
-
-export interface IListener<ListenersManagerState> {
+export interface IListener<ManagerState> {
   start(): void;
   end(): void;
   update<ListenerUpdateFields>(fields: Partial<ListenerUpdateFields>): void;
   onUpdate(
-    oldState: Partial<ListenersManagerState>,
-    newState: Partial<ListenersManagerState>
+    oldState: Partial<ManagerState>,
+    newState: Partial<ManagerState>
   ): void;
 }
 
 export interface IListenerFactory<
-  ManagerConstructorArgs,
-  ListenersManagerState
+  ManagerConstructor,
+  ManagerState,
+  ExtraArgs = {}
 > {
   construct(
-    args: ManagerConstructorArgs &
-      ListenerConstructorArgs<ListenersManagerState>
-  ): IListener<ListenersManagerState>;
+    args: ManagerConstructor & ListenerConstructor<ManagerState, ExtraArgs>
+  ): IListener<ManagerState>;
 }
