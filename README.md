@@ -107,7 +107,7 @@ export interface IListenerFactory<
 
 ## Demo / Example
 
-CodeSandbox: https://codesandbox.io/s/smoosh-field-0rf4g?file=/package.json
+**CodeSandbox:** https://codesandbox.io/s/smoosh-field-0rf4g?file=/package.json
 
 You can clone or fork the project. In root directory, run:
 
