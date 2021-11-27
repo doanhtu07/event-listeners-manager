@@ -4,14 +4,14 @@ A manager for event listeners either custom or in DOM.
 
 ## Table of content
 
-- [Problem](https://github.com/doanhtu07/event-listeners-manager#problem)
-- [Solution: How it works](https://github.com/doanhtu07/event-listeners-manager#solution-how-it-works)
-- [Demo / Example](https://github.com/doanhtu07/event-listeners-manager#demo--example)
-  - [Example Imports](https//github.com/doanhtu07/event-listeners-manager#example-imports)
-  - [Example Types](https://github.com/doanhtu07/event-listeners-manager#example-types)
-  - [Example Listener Class](https://github.com/doanhtu07/event-listeners-manager#example-listener-class)
-  - [Example Listener Factory](https://github.com/doanhtu07/event-listeners-manager#example-listener-factory)
-  - [Example Usage In Code](https://github.com/doanhtu07/event-listeners-manager#example-usage-in-code)
+- [Problem](#problem)
+- [Solution: How it works](#solution-how-it-works)
+- [Demo / Example](#demo--example)
+  - [Example Imports](#example-imports)
+  - [Example Types](#example-types)
+  - [Example Listener Class](#example-listener-class)
+  - [Example Listener Factory](#example-listener-factory)
+  - [Example Usage In Code](#example-usage-in-code)
 
 ## Problem
 
