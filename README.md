@@ -24,36 +24,32 @@ Below is a brief description of the functions and their purposes from these 3 co
 
 // Listeners Manager
 
-export interface IListenersManager<
-  ManagerConstructorArgs,
-  ListenersManagerState
-> {
-
+export interface IListenersManager<ManagerConstructor, ManagerState> {
   // Register new listeners. Can pass in one or an array of new listeners
   register(
     listener:
-      | TRegisterListener<ManagerConstructorArgs, ListenersManagerState>
-      | TRegisterListener<ManagerConstructorArgs, ListenersManagerState>[]
+      | Register<ManagerConstructor, ManagerState>
+      | Register<ManagerConstructor, ManagerState>[]
   ): void;
 
-  // Use for information and checking if listeners are registered but missing
+  // Use for information and checking
   logRegisteredListeners(): void;
+  logCurrentListeners(): void;
 
   // Start all registered event listeners
-  startAll(args: ListenersWithExtraArgs[]): void;
-  
+  startAll(args: ListenerWithExtraArgs[]): void;
+
   // Stop all registered event listeners
   endAll(): void;
-  
+
   // Start specific event listeners. Not registered names are ignored
-  start(args: ListenersWithExtraArgs[]): void;
-  
+  start(args: ListenerWithExtraArgs[]): void;
+
   // End specific event listeners. Not registered names are ignored
   end(listenerNames: string[]): void;
-  
+
   // Function to update state: Passed in listeners through factory
-  update(newState: Partial<ListenersManagerState>): void;
-  
+  update(newState: Partial<ManagerState>): void;
 }
 
 ```
@@ -62,23 +58,21 @@ export interface IListenersManager<
 
 // Listener
 
-export interface IListener<ListenersManagerState> {
-
+export interface IListener<ManagerState> {
   // Start listening to some events
   start(): void;
-  
+
   // Stop listening to events
   end(): void;
-  
+
   // Use to update manager's state, so that other registered listeners know.
   update<ListenerUpdateFields>(fields: Partial<ListenerUpdateFields>): void;
-  
+
   // Trigger when there are changes to new manager's state made by any event listeners
   onUpdate(
-    oldState: Partial<ListenersManagerState>,
-    newState: Partial<ListenersManagerState>
+    oldState: Partial<ManagerState>,
+    newState: Partial<ManagerState>
   ): void;
-  
 }
 
 ```
@@ -88,21 +82,19 @@ export interface IListener<ListenersManagerState> {
 // Listener Factory
 
 export interface IListenerFactory<
-  ManagerConstructorArgs,
-  ListenersManagerState
+  ManagerConstructor,
+  ManagerState,
+  ExtraArgs = {}
 > {
-
   // Use to construct an event listener and give to manager
   construct(
-    args: ManagerConstructorArgs &
-      ListenerConstructorArgs<ListenersManagerState>
-  ): IListener<ListenersManagerState>;
-  
+    args: ManagerConstructor & ListenerConstructor<ManagerState, ExtraArgs>
+  ): IListener<ManagerState>;
 }
 
 ```
 
-## Demo / Example
+# Demo / Example
 
 You can clone or fork the project. In root directory, run:
 
@@ -132,31 +124,39 @@ import Quill, { TextChangeHandler } from "quill";
 import {
   InheritFromManager,
   IListener,
-  ListenerConstructorArgs,
+  ListenerConstructor,
   IListenerFactory,
 } from "../copy_of_manager/types";
 
 ```
 
+### Example Types
+
 ```ts
 
 // Example types
 
-export type Example_ManagerConstructorArgs = {
+export type ManagerConstructor_Example = {
   editor: Quill;
 };
 
-export type Example_ListenersManagerState = {
+export type ManagerState_Example = {
   TestPlugin: {
     haveFinished: boolean;
   };
 };
 
-export type Example_TestPluginUpdateFields = {
+export type TestPlugin_ExtraArgs_Example = {
+  isTestMode: boolean;
+};
+
+export type TestPlugin_UpdateInput_Example = {
   haveFinished: boolean;
 };
 
 ```
+
+### Example Listener Class
 
 ```ts
 
@@ -168,21 +168,23 @@ export type Example_TestPluginUpdateFields = {
 
 // (Optional) Shape for input of listener's update state function is up to you
 
-class TestPlugin implements IListener<Example_ListenersManagerState> {
+class TestPlugin implements IListener<ManagerState_Example> {
+  private mEditor: Quill | undefined;
   private mInheritFromManager:
-    | InheritFromManager<Example_ListenersManagerState>
+    | InheritFromManager<ManagerState_Example>
     | undefined;
 
-  private mEditor: Quill | undefined;
- 
   constructor(
-    args: Example_ManagerConstructorArgs &
-      ListenerConstructorArgs<Example_ListenersManagerState>
+    args: ManagerConstructor_Example &
+      ListenerConstructor<ManagerState_Example, TestPlugin_ExtraArgs_Example>
   ) {
-    this.mEditor = args.editor;
+    const { editor, updateState, ...extraArgs } = args;
+
+    this.mEditor = editor;
     this.mInheritFromManager = {
-      updateState: args.updateState,
+      updateState,
     };
+    console.log("Extra args:", extraArgs);
   }
 
   start = (): void => {
@@ -195,7 +197,7 @@ class TestPlugin implements IListener<Example_ListenersManagerState> {
     this.mEditor?.off("text-change", this.logEditor);
   };
 
-  update = (fields: Partial<Example_TestPluginUpdateFields>): void => {
+  update = (fields: Partial<TestPlugin_UpdateInput_Example>): void => {
     if (!this.mInheritFromManager) return;
 
     const { updateState } = this.mInheritFromManager;
@@ -208,8 +210,8 @@ class TestPlugin implements IListener<Example_ListenersManagerState> {
   };
 
   onUpdate = (
-    oldState: Partial<Example_ListenersManagerState>,
-    newState: Partial<Example_ListenersManagerState>
+    oldState: Partial<ManagerState_Example>,
+    newState: Partial<ManagerState_Example>
   ): void => {
     console.log("-----");
     console.log("Manager update state:");
@@ -235,21 +237,19 @@ class TestPlugin implements IListener<Example_ListenersManagerState> {
 
 ```
 
+### Example Listener Factory
+
 ```ts
 
 // Example factory
 
 class TestPluginFactory
-  implements
-    IListenerFactory<
-      Example_ManagerConstructorArgs,
-      Example_ListenersManagerState
-    >
+  implements IListenerFactory<ManagerConstructor_Example, ManagerState_Example>
 {
   construct = (
-    args: Example_ManagerConstructorArgs &
-      ListenerConstructorArgs<Example_ListenersManagerState>
-  ): IListener<Example_ListenersManagerState> => {
+    args: ManagerConstructor_Example &
+      ListenerConstructor<ManagerState_Example, TestPlugin_ExtraArgs_Example>
+  ): IListener<ManagerState_Example> => {
     return new TestPlugin(args);
   };
 }
@@ -258,3 +258,105 @@ class TestPluginFactory
 export const TestPluginFactory_Singleton = new TestPluginFactory();
 
 ```
+
+### Example Usage In Code
+
+```tsx
+
+// Use in code (React)
+
+class App extends React.Component {
+  mQuill: Quill | undefined;
+  mManager:
+    | IListenersManager<ManagerConstructor_Example, ManagerState_Example>
+    | undefined;
+
+  componentDidMount() {
+    const container = document.querySelector("#container");
+
+    if (!container) {
+      console.log("Container not found");
+      return;
+    }
+
+    this.mQuill = new Quill(container, {
+      theme: "snow",
+      modules: { toolbar: false },
+    });
+
+    this.mManager = new ListenersManager<
+      ManagerConstructor_Example,
+      ManagerState_Example
+    >({
+      editor: this.mQuill,
+    });
+
+    this.mManager.register({
+      key: "TestPlugin",
+      ListenerFactory: TestPluginFactory_Singleton,
+    });
+
+    this.mManager.logRegisteredListeners();
+
+    this.mManager.startAll([
+      {
+        key: "TestPlugin",
+        extraArgs: {
+          isTestMode: true,
+        },
+      },
+    ]);
+  }
+
+  componentWillUnmount() {
+    this.mManager?.endAll();
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <div
+          style={{
+            width: "100vw",
+            height: "300px",
+            padding: "20px",
+            boxSizing: "border-box",
+
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <div
+            id="container"
+            style={{
+              border: "2px solid black",
+              width: "100%",
+              height: "fit-content",
+            }}
+          />
+        </div>
+
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <p>
+            Edit <code>src/App.tsx</code> and save to reload.
+          </p>
+          <a
+            className="App-link"
+            href="https://reactjs.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Learn React
+          </a>
+        </header>
+      </div>
+    );
+  }
+}
+
+export default App;
+
+```
+
+# Good luck!
