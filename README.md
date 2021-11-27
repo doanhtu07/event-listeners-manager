@@ -2,6 +2,17 @@
 
 A manager for event listeners either custom or in DOM.
 
+## Table of content
+
+- [Problem](https://github.com/doanhtu07/event-listeners-manager#problem)
+- [Solution: How it works](https://github.com/doanhtu07/event-listeners-manager#solution-how-it-works)
+- [Demo / Example](https://github.com/doanhtu07/event-listeners-manager#demo--example)
+  - [Example Imports](https//github.com/doanhtu07/event-listeners-manager#example-imports)
+  - [Example Types](https://github.com/doanhtu07/event-listeners-manager#example-types)
+  - [Example Listener Class](https://github.com/doanhtu07/event-listeners-manager#example-listener-class)
+  - [Example Listener Factory](https://github.com/doanhtu07/event-listeners-manager#example-listener-factory)
+  - [Example Usage In Code](https://github.com/doanhtu07/event-listeners-manager#example-usage-in-code)
+
 ## Problem
 
 If your codeflow is event driven, events can become messy. Event Listeners Manager is a small step to help structure event listeners into classes, which you have more control over.  
@@ -94,7 +105,7 @@ export interface IListenerFactory<
 
 ```
 
-# Demo / Example
+## Demo / Example
 
 You can clone or fork the project. In root directory, run:
 
@@ -103,8 +114,6 @@ You can clone or fork the project. In root directory, run:
 You will see a React app. Open Inspect to see logs of my test event listeners. 
 
 I use Quill, a WYSWYG editor, for demonstration since it is a perfect example of event-driven code with custom listeners (text-change, selection-change, editor-change).
-
-## How to use this package
 
 Of course, you install it first:
 
@@ -115,6 +124,8 @@ or
 `yarn add event-listeners-manager`
 
 Then, the hard part is implementing your first event listener class and factory.
+
+### Example Imports
 
 ```ts
 
@@ -264,6 +275,18 @@ export const TestPluginFactory_Singleton = new TestPluginFactory();
 ```tsx
 
 // Use in code (React)
+
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import Quill from "quill";
+import ListenersManager from "./copy_of_manager";
+import {
+  ManagerState_Example,
+  ManagerConstructor_Example,
+  TestPluginFactory_Singleton,
+} from "./example/TestPlugin";
+import { IListenersManager } from "./copy_of_manager/types";
 
 class App extends React.Component {
   mQuill: Quill | undefined;
