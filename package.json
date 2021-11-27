@@ -1,0 +1,32 @@
+{
+  "name": "event-listeners-manager",
+  "description": "A manager for event listeners either custom or in DOM.",
+  "author": "Anh Tu Do",
+  "license": "MIT",
+  "keywords": [
+    "javascript",
+    "manager",
+    "event",
+    "listener"
+  ],
+  "version": "0.1.0",
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/@types/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doanhtu07/event-listeners-manager.git"
+  },
+  "dependencies": {
+    "typescript": "^4.1.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "cd ./react-example && yarn start"
+  }
+}
