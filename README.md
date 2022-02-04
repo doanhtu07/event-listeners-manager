@@ -2,6 +2,16 @@
 
 A manager for event listeners either custom or in DOM.
 
+## Support
+
+If you like the project, don't forget to give a star.
+
+If you have any issues, post them on Github.
+
+**Github** | https://github.com/doanhtu07/StickySideBar
+
+Thank you!
+
 ## Table of content
 
 - [Demo](#demo)
