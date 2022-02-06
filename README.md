@@ -8,7 +8,7 @@ If you like the project, don't forget to give a star.
 
 If you have any issues, post them on Github.
 
-**Github** | https://github.com/doanhtu07/StickySideBar
+**Github** | https://github.com/doanhtu07/event-listeners-manager
 
 Thank you!
 
