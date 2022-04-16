@@ -9,7 +9,7 @@
     "event",
     "listener"
   ],
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": false,
   "main": "dist/index.js",
   "types": "dist/@types/index.d.ts",
@@ -27,6 +27,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "cd ./react-example && yarn start"
+    "test": "cd ./react-example && yarn start",
+    "prepare": "yarn build"
   }
 }
